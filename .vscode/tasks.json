@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run ncs_cli",
+            "type": "shell",
+            "command": "~/nso-6.2.1/bin/ncs_cli -C -u admin",
+            "problemMatcher": []
+        }
+    ]
+}

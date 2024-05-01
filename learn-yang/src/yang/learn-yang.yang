@@ -1,0 +1,19 @@
+module learn-yang {
+  namespace "http://com/example/learnyang";
+  prefix learn-yang;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+
+  container person {
+    leaf name { type string;}
+    leaf age {type uint32;}
+    leaf favorite-color { type string;}
+}
+
+}

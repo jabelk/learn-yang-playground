@@ -1,0 +1,14 @@
+{
+  "version": "0.3.0",
+  "configurations": [
+    {
+      "name": "Run ncs_cli",
+      "type": "python", // No direct support for bash, so we hack around it.
+      "request": "launch",
+      "preLaunchTask": "Run ncs_cli", // This task is defined in tasks.json
+      "program": "", // Not used but required field
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}
