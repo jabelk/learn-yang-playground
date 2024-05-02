@@ -1,0 +1,38 @@
+module ip-access-list {
+  namespace "http://example.com/ns/yang/ip-access-list";
+  prefix acl;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  organization
+    "Example, Inc.";
+
+  contact
+    "Example, Inc.
+     Customer Service
+     E-mail: cs-yang@example.org";
+
+  description
+    "Access Control List (ACL) YANG model.";
+
+  revision 2021-07-06 {
+    description
+      "Initial revision";
+  }
+  // ...
+  container acl {
+    description
+      "Access Control Lists";
+    leaf acl-description {
+      type string{
+        length "0..64";
+        pattern
+          "[0-9a-zA-Z]*";
+      }
+      description
+        "Purpose of ACL";
+    }
+  }
+}
