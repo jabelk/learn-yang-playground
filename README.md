@@ -1,97 +1,8 @@
 # Learning YANG Data Modeling By Playing in the NSO Playground 
 
+A new package per example, pre compiled, all viewing YANG and then put in only NSO CLI inputs. 
 
 
-# Overview
-
-### What You’ll Learn
-- Setting up NSO and the YANG models
-- Looking at the person data model
-- Looking at the router data model
-
-### What You'll Need
-
-- [Reserve the NSO Reservable Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/43964e62-a13c-4929-bde7-a2f68ad6b27c?diagramType=Topology)
-
-
-
-# Setting Up NSO and the YANG Models
-
-YANG is a core concept in network automation and is used in APIs like NETCONF and RESTCONF to define the data model. It can also be used to define other data models. Cisco Network Services Orchestrator (NSO) as a product was designed by folks who knew YANG very well and actually used it to define and customize NSO.
-
-We can use Cisco NSO as a learning tool because you can customize the NSO application with YANG and view the results immediately. Even though this is not how most people will use YANG, seeing it in a new context may help you learn it in the more mainstream context of NETCONF and RESTCONF.
-
-## Setting Up NSO
-
-After your NSO Sandbox reservation is up, log in to the `10.10.20.49` system install server. It already has a populated device list and a running instance. Navigate to the NSO packages directory using the command `cd /var/opt/ncs/packages/`, and issue the `ls` command to view the existing packages NSO is using:
-
-```bash
-[developer@nso ~]$ cd /var/opt/ncs/packages/
-[developer@nso packages]$ ls
-cisco-asa-cli-6.12  cisco-iosxr-cli-7.32  resource-manager  svi_sample_service
-cisco-ios-cli-6.67  cisco-nx-cli-5.20     selftest
-[developer@nso packages]$
-```
-
-Now we are going to add a new package to NSO by using a built-in command to generate a skeleton set of files and folders that conform to the NSO package system. Issue the command `ncs-make-package --service-skeleton python belk-model` to create a new package, and then `tree belk-model` to view the files and folders:
-
-```
-[developer@nso packages]$ ncs-make-package --service-skeleton python belk-model
-[developer@nso packages]$ tree belk-model/
-belk-model/
-├── package-meta-data.xml
-├── python
-│   └── belk_model
-│       ├── __init__.py
-│       └── main.py
-├── README
-├── src
-│   ├── Makefile
-│   └── yang
-│       └── belk-model.yang
-├── templates
-└── test
-    ├── internal
-    │   ├── lux
-    │   │   ├── Makefile
-    │   │   └── service
-    │   │       ├── dummy-device.xml
-    │   │       ├── dummy-service.xml
-    │   │       ├── Makefile
-    │   │       ├── pyvm.xml
-    │   │       └── run.lux
-    │   └── Makefile
-    └── Makefile
-
-9 directories, 14 files
-[developer@nso packages]
-```
-
-Let's set up a second example package as well with a more network focused example. Issue the command `ncs-make-package --service-skeleton python router-model` to create another package called `router-model`:
-
-```bash
-[developer@nso packages]$ ncs-make-package --service-skeleton python router-model
-[developer@nso packages]$ ls
-belk-model          cisco-iosxr-cli-7.32  router-model
-cisco-asa-cli-6.12  cisco-nx-cli-5.20     selftest
-cisco-ios-cli-6.67  resource-manager      svi_sample_service
-[developer@nso packages]$
-```
-
-## Putting the YANG in Place
-
-We will only need to edit one file in each of the packages for our example to work&mdash;the YANG file.
-
-First, we will remove the existing placeholder file. Rather than try to tweak them, it is easier to fully replace them, using the `rm /var/opt/ncs/packages/belk-model/src/yang/belk-model.yang` and `rm /var/opt/ncs/packages/router-model/src/yang/router-model.yang` commands:
-
-```
-[developer@nso packages]$ rm /var/opt/ncs/packages/belk-model/src/yang/belk-model.yang
-[developer@nso packages]$ rm /var/opt/ncs/packages/router-model/src/yang/router-model.yang
-```
-
-Now we can put in new copies. Here are the contents of each file:
-
-belk-model.yang
 
 ```javascript
 module belk-model {
@@ -122,87 +33,6 @@ container router {
           enum down;}
   }}}
 ```
-
-You can use [VS Code Remote Explorer](https://code.visualstudio.com/docs/remote/ssh), or you can use `vim` or `nano` as well:
-
-```bash
-[developer@nso packages]$ nano /var/opt/ncs/packages/belk-model/src/yang/belk-model.yang
-[developer@nso packages]$ nano /var/opt/ncs/packages/router-model/src/yang/router-model.yang
-```
-
-Now that the YANG files are updated, we need to compile the YANG so that NSO can load them into the application. Navigate to the first package with the command `cd /var/opt/ncs/packages/belk-model/src/` and issue a `make` command to compile the first YANG file. Next, issue the command `cd /var/opt/ncs/packages/router-model/src/` and issue a `make` command to compile the second package.
-
-```bash
-[developer@nso packages]$ cd /var/opt/ncs/packages/belk-model/src/
-[developer@nso src]$ ls
-Makefile  yang
-[developer@nso src]$ make
-mkdir -p ../load-dir
-mkdir -p java/src//
-/opt/ncs/current/bin/ncsc  `ls belk-model-ann.yang  > /dev/null 2>&1 && echo "-a belk-model-ann.yang"` \
-              -c -o ../load-dir/belk-model.fxs yang/belk-model.yang
-[developer@nso src]$ cd /var/opt/ncs/packages/router-model/src/
-[developer@nso src]$ make
-mkdir -p ../load-dir
-mkdir -p java/src//
-/opt/ncs/current/bin/ncsc  `ls router-model-ann.yang  > /dev/null 2>&1 && echo "-a router-model-ann.yang"` \
-              -c -o ../load-dir/router-model.fxs yang/router-model.yang
-[developer@nso src]$
-```
-
-Now you must log in to NSO to reload the packages and load in the new YANG files. Log in to NSO using the `ncs_cli` command, and reload the packages using the `packages reload force` command:
-
-```
-[developer@nso packages]$ ncs_cli
-
-User developer last logged in 2022-12-15T14:02:55.457177-08:00, to nso, from 10.10.20.49 using rest-https
-developer connected from 192.168.254.11 using ssh on nso
-developer@ncs# packages reload force
-
->>> System upgrade is starting.
->>> Sessions in configure mode must exit to operational mode.
->>> No configuration changes can be performed until upgrade has completed.
->>> System upgrade has completed successfully.
-reload-result {
-    package belk-model
-    result true
-}
-reload-result {
-    package cisco-asa-cli-6.12
-    result true
-}
-reload-result {
-    package cisco-ios-cli-6.67
-    result true
-}
-reload-result {
-    package cisco-iosxr-cli-7.32
-    result true
-}
-reload-result {
-    package cisco-nx-cli-5.20
-    result true
-}
-reload-result {
-    package resource-manager
-    result true
-}
-reload-result {
-    package router-model
-    result true
-}
-reload-result {
-    package selftest
-    result true
-}
-reload-result {
-    package svi_verify_example
-    result true
-}
-developer@ncs#
-
-```
-
 
 
 # Looking at the Person Data Model
@@ -337,24 +167,6 @@ developer@ncs# show running-config person | display json
 }
 developer@ncs#
 ```
-
-Compare the XML and JSON outputs to the original data model:
-
-belk-model.yang
-
-```javascript
-module belk-model {
-  namespace "http://com/example/belkmodel";
-  prefix belk-model;
-  container person {
-    leaf name { type string;}
-    leaf age {type uint32;}
-    leaf favorite-color { type string;}
-}}
-```
-
-Notice that the data model does not tell us what the values will be, but it gives us the flow and structure of how the output will look. This is incredibly helpful for automation because it gives you a predictable and programmatic way of expecting and consuming the data.
-
 
 
 # Looking at the Router Data Model
